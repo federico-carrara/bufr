@@ -19,6 +19,7 @@ dependencies = [
     "pyyaml",
     "wilds",
     "wandb",
+    "tqdm",
 ]
 
 [tool.setuptools.packages.find]

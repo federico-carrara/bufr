@@ -5,6 +5,7 @@ Pre-train a model on the training (source) distribution.
 from __future__ import division, print_function, absolute_import
 import argparse
 import yaml
+from tqdm import tqdm
 from nets import MNISTCNNBase, ResNet18
 import nets_wilds
 import torch.optim
@@ -39,7 +40,7 @@ FLAGS.add_argument('--cpu', action='store_true',
                    help="Set this to use CPU, default use CUDA")
 FLAGS.add_argument('--wandb-project', type=str, default=None,
                    help="W&B project name. If set, logs metrics to Weights & Biases.")
-FLAGS.add_argument('--wandb-entity', type=str, default=None,
+FLAGS.add_argument('--wandb-entity', type=str, default='juglab',
                    help="W&B entity (team or username)")
 FLAGS.add_argument('--no-log', action='store_true',
                    help="Disable all logging to disk and W&B (useful for debugging)")
@@ -76,7 +77,8 @@ def main():
     if not args.no_log and args.wandb_project is not None:
         run_name = "_".join(str(a) for a in exp_affixes)
         wandb_logger = WandbLogger(
-            args.wandb_project, {**alg_config, **data_config},
+            args.wandb_project, 
+            {**alg_config, **data_config},
             run_name,
             entity=args.wandb_entity
         )
@@ -134,10 +136,11 @@ def main():
     # Pre-train ---------------------------------------------------
     print("Beginning pre-training...")
     learner.train()
-    for epoch in range(1, alg_config["epochs"] + 1):
+    epoch_bar = tqdm(range(1, alg_config["epochs"] + 1), desc="Pre-training", unit="epoch")
+    for epoch in epoch_bar:
         epoch_loss = 0.0
         epoch_acc = 0.0
-        for data_tuple in tr_loader:
+        for data_tuple in tqdm(tr_loader, desc=f"  Epoch {epoch}", leave=False, unit="batch"):
             x_tr, y_tr = data_tuple[0].to(args.dev), data_tuple[1].to(args.dev)
             # train step
             optim.zero_grad()
@@ -151,6 +154,7 @@ def main():
             epoch_acc += acc
 
         results = [epoch, epoch_loss / len(tr_loader), epoch_acc / len(tr_loader)]
+        epoch_bar.set_postfix(loss=f"{results[1]:.4f}", acc=f"{results[2]:.3f}")
         print("Epoch {}. Avg train loss {:6.4f}. Avg train acc {:6.3f}.".format(*results))
         if wandb_logger is not None:
             wandb_logger.log({"train/loss": results[1], "train/acc": results[2]}, step=epoch)
