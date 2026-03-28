@@ -1,0 +1,5 @@
+[console_scripts]
+bufr-adapt = bufr.adapt:main
+bufr-pretrain = bufr.pretrain:main
+bufr-run = bufr.bufr:main
+bufr-save-train-stats = bufr.save_train_stats:main

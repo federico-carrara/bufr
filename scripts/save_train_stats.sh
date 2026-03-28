@@ -2,7 +2,7 @@
 
 export CUDA_VISIBLE_DEVICES="1"
 
-python save_train_stats.py    --data-root ./datasets/ \
+python -m bufr.save_train_stats    --data-root ./datasets/ \
                               --output-dir ./ \
                               --alg-config ./configs/EMNIST-DA/save_train_stats.yml \
                               --data-config ./configs/EMNIST-DA/dataset.yml \

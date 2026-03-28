@@ -11,7 +11,7 @@
 
 DATASET=MNIST-C
 
-python pretrain.py  --data-root /group/jug/ruggiero/TTA/data \
+python -m bufr.pretrain  --data-root /group/jug/ruggiero/TTA/data \
                     --output-dir /group/jug/ruggiero/TTA/pretraining \
                     --alg-config ./configs/$DATASET/pretrain.yml \
                     --data-config ./configs/$DATASET/dataset.yml \

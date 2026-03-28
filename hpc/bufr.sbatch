@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
 
-python bufr.py      --data-root ./datasets/ \
+python -m bufr.bufr      --data-root ./datasets/ \
                     --output-dir ./ \
                     --alg-configs-dir ./configs/EMNIST-DA/ \
                     --data-config ./configs/EMNIST-DA/dataset.yml \

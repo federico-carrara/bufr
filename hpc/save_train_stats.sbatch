@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
 
-python save_train_stats.py    --data-root ./datasets/ \
+python -m bufr.save_train_stats    --data-root ./datasets/ \
                               --output-dir ./ \
                               --alg-config ./configs/EMNIST-DA/save_train_stats.yml \
                               --data-config ./configs/EMNIST-DA/dataset.yml \
