@@ -126,8 +126,10 @@ def main():
     # Calculate num batches to use ------------
     possible_n_batches = len(dataloader)
     if alg_config["n_batches"] == -1:
+        # NOTE: i.e., we use the entire source dataset to gather stats
         n_batches = possible_n_batches
     else:
+        # NOTE: i.e., we use only a subset of the source dataset to gather stats, for faster experimentation
         n_batches = min(alg_config["n_batches"], possible_n_batches)
 
     # Add stats layers (*after* loading base model weights) -----------------
@@ -146,8 +148,13 @@ def main():
     print(learner.stats_layers)
 
     # Calibrate bin range (iff using a BinStats layer) ----------------------
-    if any([isinstance(stats_layer, BinStats) or isinstance(stats_layer, MomentStats)
-            for stats_layer in learner_stats_layers]):
+    # NOTE: this does a first forward pass for the entire dataset to set the 
+    # range (min-max) for each activation feature, later used for determining bin edges.
+    # Done by setting `track_range=True` for each layer.
+    if any([
+        isinstance(stats_layer, BinStats) or isinstance(stats_layer, MomentStats)
+        for stats_layer in learner_stats_layers
+    ]):
         print("Calibrating bin ranges...")
         for stats_layer in learner_stats_layers:
             stats_layer.track_range = True
@@ -163,7 +170,7 @@ def main():
     # Gather train (p) stats ------------------------------------------------
     print("Gathering unit statistics on the training data (i.e. forming \'p\')...")
     for stats_layer in learner_stats_layers:
-        stats_layer.track_range = False
+        stats_layer.track_range = False # Done already in previous step (calibration)
         stats_layer.track_stats = True
 
     learner.eval()
