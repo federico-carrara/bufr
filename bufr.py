@@ -42,6 +42,8 @@ FLAGS.add_argument('--wandb-project', type=str, default=None,
                    help="W&B project name. If set, logs metrics to Weights & Biases.")
 FLAGS.add_argument('--wandb-entity', type=str, default=None,
                    help="W&B entity (team or username)")
+FLAGS.add_argument('--no-log', action='store_true',
+                   help="Disable all logging to disk and W&B (useful for debugging)")
 
 
 def get_trainable_params(module_list, network_name):
@@ -111,7 +113,7 @@ def get_scores_layer_from_param_layer(l, using_batchnorm=False):
 
 def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_dir="ckpts/", logs_dir="logs/",
              n_workers=0, pin_mem=False, dev=torch.device('cpu'), seed=123,
-             wandb_project=None, wandb_entity=None):
+             wandb_project=None, wandb_entity=None, no_log=False):
 
     if shift_name not in data_config["shifts"]:
         raise ValueError("Invalid shift, {}, for dataset {}".format(shift_name, data_config["dataset_name"]))
@@ -237,12 +239,15 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
     exp_settings = [shift_name, alg_config["optimizer"], alg_config["lr"], alg_config["alg_name"],
                     alg_config["fr_type"], alg_config["tau"], seed]
     exp_setting_names = ["Shift", "Opt.", "LR", "Algorithm", "FR type", "tau", "seed"]
-    logger = GOATLogger("train", logs_dir, alg_config["log_freq"], "adapt-single-ds", alg_config["epochs_per_block"], 0,
-                        *exp_settings)
+    if no_log:
+        logger = NullLogger()
+    else:
+        logger = GOATLogger("train", logs_dir, alg_config["log_freq"], "adapt-single-ds",
+                            alg_config["epochs_per_block"], 0, *exp_settings)
     logger.loginfo(learner)
 
     wandb_logger = None
-    if wandb_project is not None:
+    if not no_log and wandb_project is not None:
         run_name = "_".join(str(s) for s in exp_settings)
         wandb_logger = WandbLogger(wandb_project, {**alg_config, **data_config},
                                    run_name, entity=wandb_entity)
@@ -459,7 +464,8 @@ if __name__ == '__main__':
                                                    ckpt_dir, logs_dir, n_workers=args.n_workers,
                                                    pin_mem=args.pin_mem, dev=dev, seed=seed,
                                                    wandb_project=args.wandb_project,
-                                                   wandb_entity=args.wandb_entity)
+                                                   wandb_entity=args.wandb_entity,
+                                                   no_log=args.no_log)
                 shift_maxs.append(max_acc)
                 shift_finals.append(final_acc)
                 shift_eces.append(ece)

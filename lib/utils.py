@@ -830,6 +830,14 @@ def seed_torch(seed=404, deterministic=False):
         torch.backends.cudnn.deterministic = True
 
 
+class NullLogger:
+    """Drop-in replacement for GOATLogger that silently discards all output."""
+    def loginfo(self, *args, **kwargs): pass
+    def logdebug(self, *args, **kwargs): pass
+    def batch_info(self, **kwargs): pass
+    def shutdown(self): pass
+
+
 class WandbLogger:
     def __init__(self, project, config, run_name, entity=None):
         import wandb

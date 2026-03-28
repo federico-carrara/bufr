@@ -41,6 +41,8 @@ FLAGS.add_argument('--wandb-project', type=str, default=None,
                    help="W&B project name. If set, logs metrics to Weights & Biases.")
 FLAGS.add_argument('--wandb-entity', type=str, default=None,
                    help="W&B entity (team or username)")
+FLAGS.add_argument('--no-log', action='store_true',
+                   help="Disable all logging to disk and W&B (useful for debugging)")
 
 
 def main():
@@ -71,7 +73,7 @@ def main():
 
     # W&B logger (opt-in) ----------------------------------------------------
     wandb_logger = None
-    if args.wandb_project is not None:
+    if not args.no_log and args.wandb_project is not None:
         run_name = "_".join(str(a) for a in exp_affixes)
         wandb_logger = WandbLogger(
             args.wandb_project, {**alg_config, **data_config},
