@@ -38,6 +38,10 @@ FLAGS.add_argument('--pin-mem', action='store_true',
                    help="DataLoader pin_memory")
 FLAGS.add_argument('--cpu', action='store_true',
                    help="Set this to use CPU, default use CUDA")
+FLAGS.add_argument('--wandb-project', type=str, default=None,
+                   help="W&B project name. If set, logs metrics to Weights & Biases.")
+FLAGS.add_argument('--wandb-entity', type=str, default=None,
+                   help="W&B entity (team or username)")
 
 
 def get_trainable_params(module_list, network_name):
@@ -106,7 +110,8 @@ def get_scores_layer_from_param_layer(l, using_batchnorm=False):
 
 
 def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_dir="ckpts/", logs_dir="logs/",
-             n_workers=0, pin_mem=False, dev=torch.device('cpu'), seed=123):
+             n_workers=0, pin_mem=False, dev=torch.device('cpu'), seed=123,
+             wandb_project=None, wandb_entity=None):
 
     if shift_name not in data_config["shifts"]:
         raise ValueError("Invalid shift, {}, for dataset {}".format(shift_name, data_config["dataset_name"]))
@@ -235,6 +240,12 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
     logger = GOATLogger("train", logs_dir, alg_config["log_freq"], "adapt-single-ds", alg_config["epochs_per_block"], 0,
                         *exp_settings)
     logger.loginfo(learner)
+
+    wandb_logger = None
+    if wandb_project is not None:
+        run_name = "_".join(str(s) for s in exp_settings)
+        wandb_logger = WandbLogger(wandb_project, {**alg_config, **data_config},
+                                   run_name, entity=wandb_entity)
     exp_settings_tabular = [(n, s) for n, s in zip(exp_setting_names, exp_settings)]
     exp_settings_tabular.sort(key=lambda r: r[0])
     exp_settings_table = tabulate(exp_settings_tabular, headers=["Name", "Value"], tablefmt="rst")
@@ -250,6 +261,7 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
 
     # Train -----------------------------------------------------------------
     epoch_times = []
+    global_step = 0
     logger.loginfo("Beginning training...")
     learner.train()
     set_dropout_to_eval(learner)
@@ -297,11 +309,14 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
 
             after_epoch_t = time.time()
             epoch_times.append(after_epoch_t - before_epoch_t)
+            global_step += 1
 
             if epoch % alg_config["log_freq"] == 0:
                 results = [epoch, train_loss / len(tr_dl), train_acc / len(tr_dl)]
                 tr_accs.append(train_acc / len(tr_dl))
                 logger.loginfo("Epoch {}. Avg tr loss {:6.4f}. Avg tr acc {:6.3f}.".format(*results))
+                if wandb_logger is not None:
+                    wandb_logger.log({"train/loss": results[1], "train/acc": results[2]}, step=global_step)
 
                 if len(stats_layers) > 0:
                     scores = [sl.surprise for sl in learner_stats_layers]
@@ -328,6 +343,9 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
                 val_accs.append(valid_acc / n_val_samples)
                 logger.loginfo("Validation loss {:6.4f}".format(valid_loss / n_val_samples))
                 logger.loginfo("Validation accuracy {:6.3f}".format(valid_acc / n_val_samples))
+                if wandb_logger is not None:
+                    wandb_logger.log({"val/loss": valid_loss / n_val_samples,
+                                      "val/acc": valid_acc / n_val_samples}, step=global_step)
 
                 d_moved_per_layer = learner_distances(init_learner, learner, distance_type="all", is_tracked_net=False)
                 mean_d, max_d, frac_moved = list(zip(*d_moved_per_layer))
@@ -391,6 +409,8 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
                  mean_ds=np.array(mean_d), max_ds=np.array(max_d))
 
     logger.shutdown()
+    if wandb_logger is not None:
+        wandb_logger.finish()
 
     return max(val_accs), val_accs[-1], ece
 
@@ -437,7 +457,9 @@ if __name__ == '__main__':
                 reset_rngs(seed=seed, deterministic=args.deterministic)
                 max_acc, final_acc, ece = adapt_bu(shift_name, data_config, alg_config, args.data_root,
                                                    ckpt_dir, logs_dir, n_workers=args.n_workers,
-                                                   pin_mem=args.pin_mem, dev=dev, seed=seed)
+                                                   pin_mem=args.pin_mem, dev=dev, seed=seed,
+                                                   wandb_project=args.wandb_project,
+                                                   wandb_entity=args.wandb_entity)
                 shift_maxs.append(max_acc)
                 shift_finals.append(final_acc)
                 shift_eces.append(ece)

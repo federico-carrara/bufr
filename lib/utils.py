@@ -830,6 +830,20 @@ def seed_torch(seed=404, deterministic=False):
         torch.backends.cudnn.deterministic = True
 
 
+class WandbLogger:
+    def __init__(self, project, config, run_name, entity=None):
+        import wandb
+        self.run = wandb.init(
+            project=project, entity=entity, name=run_name, config=config
+        )
+
+    def log(self, metrics, step):
+        self.run.log(metrics, step=step)
+
+    def finish(self):
+        self.run.finish()
+
+
 def reset_rngs(rng=None, seed=404, deterministic=False, cpu=True):
     if rng is not None:
         rng.seed(seed)

@@ -37,6 +37,10 @@ FLAGS.add_argument('--pin-mem', action='store_true',
                    help="DataLoader pin_memory")
 FLAGS.add_argument('--cpu', action='store_true',
                    help="Set this to use CPU, default use CUDA")
+FLAGS.add_argument('--wandb-project', type=str, default=None,
+                   help="W&B project name. If set, logs metrics to Weights & Biases.")
+FLAGS.add_argument('--wandb-entity', type=str, default=None,
+                   help="W&B entity (team or username)")
 
 
 def main():
@@ -63,8 +67,17 @@ def main():
     mkdir_p(ckpt_dir)
 
     # Experiment flags for name (affixes) -----------------------------------
-
     exp_affixes = [data_config["network"], args.seed]
+
+    # W&B logger (opt-in) ----------------------------------------------------
+    wandb_logger = None
+    if args.wandb_project is not None:
+        run_name = "_".join(str(a) for a in exp_affixes)
+        wandb_logger = WandbLogger(
+            args.wandb_project, {**alg_config, **data_config},
+            run_name,
+            entity=args.wandb_entity
+        )
 
     # Get data -----------------------------------------------------------------------
     if data_config["dataset_name"] == 'emnist':
@@ -137,6 +150,8 @@ def main():
 
         results = [epoch, epoch_loss / len(tr_loader), epoch_acc / len(tr_loader)]
         print("Epoch {}. Avg train loss {:6.4f}. Avg train acc {:6.3f}.".format(*results))
+        if wandb_logger is not None:
+            wandb_logger.log({"train/loss": results[1], "train/acc": results[2]}, step=epoch)
 
         # Although for EMNIST we implement a true train/val split, for cifar we wish to train on the whole training set
         # (that is, there is no validation set).
@@ -157,6 +172,9 @@ def main():
                     valid_acc += acc
             print("Validation loss {:6.4f}".format(valid_loss / len(val_loader)))
             print("Validation accuracy {:6.3f}".format(valid_acc / len(val_loader)))
+            if wandb_logger is not None:
+                wandb_logger.log({"val/loss": valid_loss / len(val_loader),
+                                  "val/acc": valid_acc / len(val_loader)}, step=epoch)
             learner.train()
         scheduler.step()
     print("Finished Training.")
@@ -192,7 +210,11 @@ def main():
         print("Test accuracy {:6.3f}".format(test_acc / len(tst_loader)))
         print("====================")
 
-    print("Test ECE: {:6.4f}".format(expected_calibration_error(tst_loader, learner, args.dev)))
+    test_ece = expected_calibration_error(tst_loader, learner, args.dev)
+    print("Test ECE: {:6.4f}".format(test_ece))
+    if wandb_logger is not None:
+        wandb_logger.log({"test/ece": test_ece}, step=epoch)
+        wandb_logger.finish()
 
 
 if __name__ == '__main__':
