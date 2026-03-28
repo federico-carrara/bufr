@@ -70,7 +70,14 @@ def main():
     mkdir_p(ckpt_dir)
 
     # Experiment flags for name (affixes) -----------------------------------
-    exp_affixes = [data_config["network"], args.seed]
+    exp_affixes = [data_config["dataset_name"], data_config["network"], args.seed]
+
+    # Save merged config to disk ---------------------------------------------
+    if not args.no_log:
+        run_name = "_".join(str(a) for a in exp_affixes)
+        config_path = os.path.join(ckpt_dir, "config_{}.yml".format(run_name))
+        with open(config_path, "w") as f:
+            yaml.dump({**alg_config, **data_config}, f)
 
     # W&B logger (opt-in) ----------------------------------------------------
     wandb_logger = None
