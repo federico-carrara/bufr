@@ -1,11 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=bufr
-#SBATCH --output=logs/bufr_%j.out
-#SBATCH --error=logs/bufr_%j.err
+#SBATCH --output=/group/jug/ruggiero/TTA/hpc_logs/bufr_%j.out
+#SBATCH --error=/group/jug/ruggiero/TTA/hpc_logs/bufr_%j.err
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
+#SBATCH --mem=64GB
+#SBATCH --partition=gpuq
 #SBATCH --gres=gpu:1
-#SBATCH --time=24:00:00
+#SBATCH --time=01:00:00
 
 python bufr.py      --data-root ./datasets/ \
                     --output-dir ./ \
