@@ -254,6 +254,13 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
                             alg_config["epochs_per_block"], 0, *exp_settings)
     logger.loginfo(learner)
 
+    # Save merged config to disk ---------------------------------------------
+    if not no_log:
+        run_name = "_".join(str(s) for s in exp_settings)
+        config_path = os.path.join(ckpt_dir, "config_{}.yml".format(run_name))
+        with open(config_path, "w") as f:
+            yaml.dump({**alg_config, **data_config}, f)
+
     wandb_logger = None
     if not no_log and wandb_project is not None:
         run_name = "_".join(str(s) for s in exp_settings)
@@ -423,6 +430,7 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
 
     logger.shutdown()
     if wandb_logger is not None:
+        wandb_logger.log({"test/ece": ece}, step=global_step)
         wandb_logger.finish()
 
     return max(val_accs), val_accs[-1], ece

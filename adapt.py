@@ -398,6 +398,13 @@ def adapt(
                             alg_config["epochs"], 0, *exp_settings)
     logger.loginfo(learner)
 
+    # Save merged config to disk ---------------------------------------------
+    if not no_log:
+        run_name = "_".join(str(s) for s in exp_settings)
+        config_path = os.path.join(ckpt_dir, "config_{}.yml".format(run_name))
+        with open(config_path, "w") as f:
+            yaml.dump({**alg_config, **data_config}, f)
+
     wandb_logger = None
     if not no_log and wandb_project is not None:
         run_name = "_".join(str(s) for s in exp_settings)
@@ -659,6 +666,7 @@ def adapt(
 
     logger.shutdown()
     if wandb_logger is not None:
+        wandb_logger.log({"test/ece": ece}, step=epoch)
         wandb_logger.finish()
     if "online" in alg_config["alg_name"]:
         # We return the same acc twice for consistency with other return statement
