@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+
+# Editable install
+src/*.egg-info/
+
+# Wandb
+wandb/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Data & checkpoints
+datasets/
+ckpts/
+outputs/
+logs/
+
+# Misc
+*.pdf
