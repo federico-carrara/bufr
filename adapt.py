@@ -114,10 +114,21 @@ def get_trainable_params(model, alg_name, network_name):
         raise ValueError("Invalid algorithm name: {}".format(alg_name))
 
 
-def adapt(shift_name, data_config, alg_config, data_root="datasets/", ckpt_dir="ckpts/", logs_dir="logs/",
-          n_workers=0, pin_mem=False, dev=torch.device('cpu'), seed=123,
-          wandb_project=None, wandb_entity=None, no_log=False):
-
+def adapt(
+    shift_name,
+    data_config,
+    alg_config,
+    data_root="datasets/",
+    ckpt_dir="ckpts/", 
+    logs_dir="logs/",
+    n_workers=0,
+    pin_mem=False,
+    dev=torch.device('cpu'),
+    seed=123,
+    wandb_project=None,
+    wandb_entity=None,
+    no_log=False
+):
     # Error catching
     if shift_name not in data_config["shifts"]:
         raise ValueError("Invalid shift, {}, for dataset {}".format(shift_name, data_config["dataset_name"]))
@@ -686,9 +697,12 @@ if __name__ == '__main__':
     if data_config["dataset_name"] == 'emnist':
         possible_algs = ["adabn", "bnm", "bnm_im", "fr", "im", "jg", "pl", "shot", "label", "source_only"]
         few_shot_algs = ["bnm", "bnm_im", "fr", "im", "jg", "pl"]
-    elif data_config["dataset_name"] == 'cifar10' or  data_config["dataset_name"] == 'cifar100':
-        possible_algs = ["adabn_online", "im_online", "fr_online", "tent_online", "adabn", "fr", "im", "pl", "label",
-                         "source_only", "tent"]
+    elif data_config["dataset_name"] == 'cifar10' or data_config["dataset_name"] == 'cifar100':
+        possible_algs = [
+            "adabn_online", "im_online", "fr_online", 
+            "tent_online", "adabn", "fr", "im", "pl", 
+            "label", "source_only", "tent"
+        ]
     elif data_config["dataset_name"] == 'camelyon17':
         possible_algs = ["adabn", "fr", "im", "pl", "source_only"]
         few_shot_algs = ["adabn", "fr", "im", "pl", "source_only"]
@@ -704,8 +718,11 @@ if __name__ == '__main__':
     elif args.alg_name in possible_algs:
         alg_names = [args.alg_name]
     else:
-        raise ValueError("Algorithm {} not implemented for dataset {}".format(args.alg_name,
-                                                                              data_config["dataset_name"]))
+        raise ValueError(
+            "Algorithm {} not implemented for dataset {}".format(
+                args.alg_name, data_config["dataset_name"]
+            )
+        )
 
     shift_names = data_config["shifts"]
     shift_names.sort()
@@ -720,12 +737,21 @@ if __name__ == '__main__':
             shift_maxs, shift_finals, shift_eces = [], [], []
             for shift_name in shift_names:
                 reset_rngs(seed=seed, deterministic=args.deterministic)
-                max_acc, final_acc, final_ece = adapt(shift_name, data_config, alg_config, args.data_root, ckpt_dir,
-                                                      logs_dir, n_workers=args.n_workers,
-                                                      pin_mem=args.pin_mem, dev=dev, seed=seed,
-                                                      wandb_project=args.wandb_project,
-                                                      wandb_entity=args.wandb_entity,
-                                                      no_log=args.no_log)
+                max_acc, final_acc, final_ece = adapt(
+                    shift_name,
+                    data_config,
+                    alg_config, 
+                    data_root=args.data_root,
+                    ckpt_dir=ckpt_dir,
+                    logs_dir=logs_dir, 
+                    n_workers=args.n_workers,
+                    pin_mem=args.pin_mem, 
+                    dev=dev,
+                    seed=seed,
+                    wandb_project=args.wandb_project,
+                    wandb_entity=args.wandb_entity,
+                    no_log=args.no_log
+                )
 
                 shift_maxs.append(max_acc)
                 shift_finals.append(final_acc)

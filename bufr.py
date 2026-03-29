@@ -79,8 +79,12 @@ def get_trainable_params_list(model, network_name):
     if network_name == "DigitCNN":
         modules_list = []
         for m in model.modules():
-            if (isinstance(m, nn.Conv2d) or isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.Linear) or
-              isinstance(m, nn.BatchNorm1d)):
+            if (
+                isinstance(m, nn.Conv2d) or 
+                isinstance(m, nn.BatchNorm2d) or 
+                isinstance(m, nn.Linear) or
+                isinstance(m, nn.BatchNorm1d)
+            ):
                 modules_list.append(m)
 
         # Bottom up goes 2 layers at a time ([conv1, bn1], [conv2, bn2], ..., [linear, bn])
@@ -175,11 +179,15 @@ def adapt_bu(shift_name, data_config, alg_config, data_root="datasets/", ckpt_di
         # For mnist we follow previous works by adapting on corrupted samples from same training set used for
         # pretraining and evaluating on the mnist test set that has been corrupted
         if shift_name == "mnistm":
-            tr_dl, val_dl, tst_dl = get_mnistm_dataloaders(data_root, alg_config["batch_size"], True, False,
-                                                           n_workers, pin_mem, split_seed=12345)
+            tr_dl, val_dl, tst_dl = get_mnistm_dataloaders(
+                data_root, alg_config["batch_size"], True, False,
+                n_workers, pin_mem, split_seed=12345
+            )
         else:
-            tr_dl, val_dl, tst_dl = get_mnist_c_dataloaders(data_root, alg_config["batch_size"], True, False,
-                                                            shift_name, n_workers, pin_mem, split_seed=12345)
+            tr_dl, val_dl, tst_dl = get_mnist_c_dataloaders(
+                data_root, alg_config["batch_size"], True, False,
+                shift_name, n_workers, pin_mem, split_seed=12345
+            )
 
     else:
         raise NotImplementedError("Dataset {} not implemented".format(data_config["dataset_name"]))
@@ -460,12 +468,14 @@ if __name__ == '__main__':
             shift_maxs, shift_finals, shift_eces = [], [], []
             for shift_name in shift_names:
                 reset_rngs(seed=seed, deterministic=args.deterministic)
-                max_acc, final_acc, ece = adapt_bu(shift_name, data_config, alg_config, args.data_root,
-                                                   ckpt_dir, logs_dir, n_workers=args.n_workers,
-                                                   pin_mem=args.pin_mem, dev=dev, seed=seed,
-                                                   wandb_project=args.wandb_project,
-                                                   wandb_entity=args.wandb_entity,
-                                                   no_log=args.no_log)
+                max_acc, final_acc, ece = adapt_bu(
+                    shift_name, data_config, alg_config, args.data_root,
+                    ckpt_dir, logs_dir, n_workers=args.n_workers,
+                    pin_mem=args.pin_mem, dev=dev, seed=seed,
+                    wandb_project=args.wandb_project,
+                    wandb_entity=args.wandb_entity,
+                    no_log=args.no_log
+                )
                 shift_maxs.append(max_acc)
                 shift_finals.append(final_acc)
                 shift_eces.append(ece)
