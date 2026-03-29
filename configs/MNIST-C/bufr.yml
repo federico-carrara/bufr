@@ -8,10 +8,10 @@ weight_decay: 0
 lr: 1.0
 epochs_per_block: 30
 
-stats_layer: soft_bins
-surprise_score: PSI
+stats_layer: all # all, gaussian, bins, mogs, soft_bins
+surprise_score: PSI # i.e., symmetric KL
 tau: 0.01
-fr_type: fc
+fr_type: fc # fc (all), features, logits
 
 log_freq: 1
 val_freq: 1

@@ -7,7 +7,7 @@ DATASET=MNIST-C
 python bufr.py \
     --data-root /group/jug/ruggiero/TTA/data/ \
     --output-dir /group/jug/ruggiero/TTA/results/ \
-    --alg-configs-dir ./configs/$DATASET/ \
+    --alg-config-dir ./configs/$DATASET/ \
     --data-config ./configs/$DATASET/dataset.yml \
     --seed 777 \
     --deterministic \

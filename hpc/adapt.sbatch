@@ -9,12 +9,16 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=01:00:00
 
-python adapt.py     --data-root ./datasets/ \
-                    --output-dir ./ \
-                    --alg-configs-dir ./configs/EMNIST-DA/ \
-                    --data-config ./configs/EMNIST-DA/dataset.yml \
-                    --alg-name fr \
-                    --seed 123 \
-                    --deterministic \
-                    --n-workers 4 \
-                    --pin-mem
+DATASET=MNIST-C
+
+python adapt.py \
+    --data-root /group/jug/ruggiero/TTA/data/ \
+    --output-dir /group/jug/ruggiero/TTA/results/ \
+    --alg-config-dir ./configs/$DATASET/ \
+    --data-config ./configs/$DATASET/dataset.yml \
+    --alg-name fr \
+    --seed 777 \
+    --deterministic \
+    --n-workers 3 \
+    --pin-mem \
+    --save-adapted-model
