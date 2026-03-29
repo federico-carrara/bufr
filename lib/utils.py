@@ -382,13 +382,19 @@ def expected_calibration_error(dataloader, learner, dev, num_bins=10):
 # Ckpt saving and loading #########################################
 ###################################################################
 
+def get_stats_layer_tag(stats_layer):
+    if stats_layer == "all":
+        return "all_stats"
+    return stats_layer
+
+
 def get_ckpt_name(epochs, network, seed, stats_layer=None, tau=None, shot=False):
     if shot:
         pretr_ckpt_name = "pretrain-learner-shot-{}_{}_{}".format(epochs, network, seed)
     else:
         pretr_ckpt_name = "pretrain-learner-{}_{}_{}".format(epochs, network, seed)
     if stats_layer is not None:
-        pretr_ckpt_name += "_{}".format(stats_layer)
+        pretr_ckpt_name += "_{}".format(get_stats_layer_tag(stats_layer))
     if tau is not None:
         pretr_ckpt_name += "_{}".format(tau)
     pretr_ckpt_name += ".pth.tar"

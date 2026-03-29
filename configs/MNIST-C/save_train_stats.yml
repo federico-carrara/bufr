@@ -1,7 +1,7 @@
 ---
 pretr_epochs: 150
 
-stats_layer: soft_bins
+stats_layer: all # "all", "gaussian", "bins", "mogs", "soft_bins"
 tau: 0.01
 batch_size: 512
 n_batches: -1

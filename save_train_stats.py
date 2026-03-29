@@ -6,8 +6,13 @@ import os
 import argparse
 import yaml
 from torch.utils.data import DataLoader
-from nets import add_stats_layers_to_cnn_classifier, add_stats_layers_to_cnn_everywhere, MNISTCNNBase, \
-    add_stats_layer_to_resnet_named_modules, ResNet18
+from nets import (
+    add_stats_layers_to_cnn_classifier, 
+    add_stats_layers_to_cnn_everywhere, 
+    MNISTCNNBase,
+    add_stats_layer_to_resnet_named_modules, 
+    ResNet18
+)
 import nets_wilds
 from lib.utils import *
 from lib.stats_layers import *
@@ -142,7 +147,7 @@ def main():
 
     learner_stats_layers = learner.stats_layers
     learner = learner.to(args.dev)
-    print(learner)
+    print("--- Network Architecture with Stats Layers ---")
     print(learner.stats_layers)
 
     # Calibrate bin range (iff using a BinStats layer) ----------------------
@@ -182,9 +187,11 @@ def main():
         print(stats_layer.bin_edges[:, -2] - stats_layer.bin_edges[:, 1])
 
     # Save model ------------------------------------------------------------
-    save_stats_affixes = [pretr_ckpt_name, stats_layers[0], alg_config["tau"]]
+    save_stats_affixes = [
+        pretr_ckpt_name, get_stats_layer_tag(alg_config["stats_layer"]), alg_config["tau"]
+    ]
     # For adding stats layers everywhere, e.g. to make the max patches figure, use the below
-    # save_stats_affixes = [pretr_ckpt_name, stats_layers[0], alg_config["tau"], "all"]
+    # save_stats_affixes = [pretr_ckpt_name, get_stats_layer_tag(alg_config["stats_layer"]), alg_config["tau"], "all"]
     ckpt_path = save_ckpt(ckpt_dir, "pretrain-learner", learner, None, pretrain_epoch, *save_stats_affixes)
     if "camelyon" in data_config["dataset_name"]:
         print("Used hospital {}".format(alg_config["hospital_idx"]))
@@ -238,11 +245,15 @@ def main():
             print(cov)  # symmetric?
 
         # Save mean and covariance ------------------------------------------------------------
-        tensor_path = save_ckpt_tensor(ckpt_dir, "pretrain-learner", mean_feats, pretrain_epoch,
-                                       *[pretr_ckpt_name, "joint_gaussian_mean"])
+        tensor_path = save_ckpt_tensor(
+            ckpt_dir, "pretrain-learner", mean_feats, pretrain_epoch,
+            *[pretr_ckpt_name, "joint_gaussian_mean"]
+        )
         print("Saved mean to {0}".format(tensor_path))
-        tensor_path = save_ckpt_tensor(ckpt_dir, "pretrain-learner", cov, pretrain_epoch,
-                                       *[pretr_ckpt_name, "joint_gaussian_cov"])
+        tensor_path = save_ckpt_tensor(
+            ckpt_dir, "pretrain-learner", cov, pretrain_epoch,
+            *[pretr_ckpt_name, "joint_gaussian_cov"]
+        )
         print("Saved covariance to {0}".format(tensor_path))
 
 

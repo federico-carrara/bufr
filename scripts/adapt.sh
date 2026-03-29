@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CUDA_VISIBLE_DEVICES="1"
+export CUDA_VISIBLE_DEVICES="0"
 
 python adapt.py     --data-root ./datasets/ \
                     --output-dir ./ \
