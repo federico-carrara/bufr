@@ -22,7 +22,7 @@ FLAGS.add_argument('--data-root', type=str, default='datasets/',
                    help="path to data")
 FLAGS.add_argument('--output-dir', type=str, default='./',
                    help="path to logs and ckpts")
-FLAGS.add_argument('--alg-configs-dir',
+FLAGS.add_argument('--alg-config-dir',
                    help="path to directory containing yaml config files for algorithm settings")
 FLAGS.add_argument('--data-config',
                    help="path to yaml config file for dataset settings")
@@ -463,7 +463,7 @@ if __name__ == '__main__':
     for seed in seeds:
         alg_name_maxs, alg_name_finals, alg_name_eces = [], [], []
         for alg_name in alg_names:
-            with open(args.alg_configs_dir + alg_name + ".yml") as f:
+            with open(args.alg_config_dir + alg_name + ".yml") as f:
                 alg_config = yaml.load(f, Loader=yaml.FullLoader)
             shift_maxs, shift_finals, shift_eces = [], [], []
             for shift_name in shift_names:
