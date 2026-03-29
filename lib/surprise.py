@@ -405,11 +405,7 @@ def surprise_mogs(p_weights, q_weights, score_type="KL", fast=True, alpha=0.0001
     :param alpha: smoothing 'pseudocount' (float).
     :return: array of scores.
     """
-    p_weights = p_weights.detach().clone().cpu().numpy()
-    q_weights = q_weights.detach().clone().cpu().numpy()
-
-    # Get entropies using the weights only (upper bound for matched components, fixed means and centres)
-    return surprise_bins(p_weights, q_weights, score_type, fast=fast, alpha=alpha)
+    return surprise_soft_bins(p_weights, q_weights, score_type, alpha=alpha)
 
 
 def aggregate_parent_surprises(learner_surprises, learner, dev, norm_weights=True):

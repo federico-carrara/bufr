@@ -936,11 +936,12 @@ def update_mixture_weights(x, weights, means, stds):
     :param stds: Array of k standard deviations.
     :return: Array of k updated weights.
     """
-    probs_ki = torch.zeros((weights.size()[0], len(x)))  # init matrix of shape [num dists, num samples]
+    probs_ki = torch.zeros(
+        (weights.size()[0], len(x)), device=weights.device
+    )  # init matrix of shape [num dists, num samples]
     weights = weights.reshape(-1, 1)
     for k, w in enumerate(weights):
         probs_ki[k] = gaussian_pdf(x, means[k], stds[k])
-    # probs_ki = gaussian_pdf(x, means, stds)
     norm = torch.mm(weights.T, probs_ki)   # normaliser / denominator
     probs_ki = probs_ki * weights  # each entry ki is unnormed resp_ki, via row-wise multiplication (broadcasting)
     probs_ki = probs_ki / (norm + EPS)     # each entry ki is resp_ki, via column-wise division (broadcasting)
